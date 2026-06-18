@@ -7,7 +7,12 @@ if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
 }
 
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+
+// Clean initialization line without any accidental markdown symbols
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
 const db = admin.firestore();
 
 const transporter = nodemailer.createTransport({
