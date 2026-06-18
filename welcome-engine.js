@@ -1,4 +1,5 @@
-const admin = require("firebase-admin");
+const { initializeApp, cert } = require("firebase-admin/app");
+const { getFirestore } = require("firebase-admin/firestore");
 const nodemailer = require("nodemailer");
 
 if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
@@ -8,12 +9,11 @@ if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
 
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
-// Clean initialization line without any accidental markdown symbols
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+initializeApp({
+  credential: cert(serviceAccount)
 });
 
-const db = admin.firestore();
+const db = getFirestore();
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -79,7 +79,10 @@ async function runWelcomeEngine() {
 
   const now = new Date();
   const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-  const cutoffTimestamp = admin.firestore.Timestamp.fromDate(oneDayAgo);
+  
+  // Note: Since we are using the modern modular layout, admin.firestore.Timestamp becomes:
+  const { Timestamp } = require("firebase-admin/firestore");
+  const cutoffTimestamp = Timestamp.fromDate(oneDayAgo);
 
   try {
     const usersSnapshot = await db.collection("users")
