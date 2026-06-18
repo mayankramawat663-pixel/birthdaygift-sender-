@@ -1,0 +1,32 @@
+name: Daily Dharex Onboarding Waitlist Engine
+
+on:
+  schedule:
+    # Triggers every day at exactly 09:00 AM UTC (02:30 PM IST)
+    - cron: '0 9 * * *'
+  # Adds a manual button so we can test it instantly
+  workflow_dispatch:
+
+jobs:
+  run-welcome-engine:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install Project Dependencies
+        run: |
+          npm init -y
+          npm install firebase-admin nodemailer
+
+      - name: Execute Welcome Mailer Script
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+        run: node welcome-engine.js
