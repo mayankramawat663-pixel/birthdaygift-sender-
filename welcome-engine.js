@@ -20,7 +20,7 @@ const transporter = nodemailer.createTransport({
   auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
 });
 
-function getWelcomeTemplate(userName, userEmail) {
+function getBirthdayTemplate(userName, couponCode) {
   return `
   <!DOCTYPE html>
   <html>
@@ -30,39 +30,34 @@ function getWelcomeTemplate(userName, userEmail) {
     <style>
       body { margin: 0; padding: 0; background-color: #0e0e10; font-family: sans-serif; }
       .email-container { max-width: 600px; margin: 20px auto; background-color: #121214; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; overflow: hidden; }
-      .header { background: linear-gradient(90deg, #00ffe1, #8f00ff); padding: 40px 20px; text-align: center; }
-      .header h1 { margin: 0; letter-spacing: 4px; color: #111111; font-size: 2.5rem; font-weight: 900; }
+      .header { background: linear-gradient(90deg, #8f00ff, #ff007f); padding: 40px 20px; text-align: center; }
+      .header h1 { margin: 0; letter-spacing: 6px; color: #ffffff; font-size: 2.2rem; font-weight: 900; }
       .content { padding: 40px 30px; color: #ffffff; line-height: 1.6; }
-      .greeting { font-size: 1.3rem; font-weight: bold; margin-bottom: 20px; color: #00ffe1; }
+      .greeting { font-size: 1.5rem; font-weight: bold; margin-bottom: 20px; color: #ff007f; text-transform: uppercase; }
       .intro-text { color: #cccccc; font-size: 1.05rem; margin-bottom: 35px; }
-      .section-title { font-size: 0.9rem; font-weight: bold; letter-spacing: 2px; color: #8f00ff; text-transform: uppercase; margin-top: 30px; margin-bottom: 15px; border-left: 3px solid #00ffe1; padding-left: 10px; }
-      .bullet-point { margin-bottom: 15px; color: #e4e4e7; font-size: 1rem; }
-      .highlight-box { background: rgba(0, 255, 225, 0.05); border: 1px dashed #00ffe1; padding: 20px; border-radius: 8px; margin: 30px 0; text-align: center; }
-      .highlight-box a { color: #00ffe1; text-decoration: none; font-weight: bold; }
+      .coupon-box { background: rgba(143, 0, 255, 0.1); border: 2px dashed #8f00ff; padding: 25px; border-radius: 12px; margin: 30px 0; text-align: center; }
+      .coupon-code { font-family: monospace; font-size: 2rem; font-weight: bold; color: #00ffe1; letter-spacing: 5px; margin: 10px 0; }
       .footer { background-color: #09090b; padding: 30px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.05); }
       .footer p { margin: 5px 0; color: #666666; font-size: 0.85rem; }
     </style>
   </head>
   <body>
     <div class="email-container">
-      <div class="header"><h1>DHAREX</h1></div>
+      <div class="header"><h1>LEVEL UP</h1></div>
       <div class="content">
-        <div class="greeting">Hey! ${userName},</div>
+        <div class="greeting">Happy Birthday, ${userName} ⚡</div>
         <p class="intro-text">
-          You’re officially in.<br><br>
-          Dharex is more than just a clothing brand—it’s the fusion of AI and street culture. By joining this waitlist, you’ve secured your place in the first wave of creators who will redefine what it means to wear art.
+          Another year closer to the future. You've been with us as a creator, and today your status shifts. <br><br>
+          To celebrate your personal launch date, we’ve generated an exclusive, one-time admin discount code just for you. Apply it at checkout to claim your gear.
         </p>
-        <div class="section-title">What Happens Now?</div>
-        <div class="bullet-point"><strong>Validation:</strong> Your spot is secured at <span style="color: #00ffe1;">${userEmail}</span>.</div>
-        <div class="bullet-point"><strong>The Drop:</strong> We are currently calibrating the first AI-personalized collection. We will hit your inbox the second the gateway opens.</div>
-        <div class="bullet-point"><strong>Founders Status:</strong> Stay active. Early supporters get first dibs on limited drops that will never be restocked.</div>
-        <div class="section-title">Want to Move Up?</div>
-        <p style="color: #cccccc; margin-top: 0;">Share the movement. The more creators you bring into the legacy, the higher your priority for the first release.</p>
-        <div class="highlight-box">
-          <span style="color: #ffffff;">STAY CONNECTED</span><br>
-          Follow the evolution on Instagram: <a href="https://instagram.com/dharex_customs" target="_blank">@dharex_customs</a>
+        
+        <div class="coupon-box">
+          <span style="color: #ffffff; font-size: 0.9rem; letter-spacing: 2px;">YOUR EXCLUSIVE ACCESS KEY:</span>
+          <div class="coupon-code">${couponCode}</div>
+          <span style="color: #aaaaaa; font-size: 0.8rem;">Takes 20% OFF your entire next custom drop order.</span>
         </div>
-        <p style="margin-top: 40px; color: #ffffff; font-weight: bold;">Stay ahead of the curve.<br><span style="color: #8f00ff;">— The Dharex Team</span></p>
+
+        <p style="margin-top: 40px; color: #ffffff; font-weight: bold;">Keep breaking boundaries.<br><span style="color: #8f00ff;">— The Dharex Team</span></p>
       </div>
       <div class="footer">
         <p>© 2026 Dharex Customs. All rights reserved.</p>
@@ -74,23 +69,18 @@ function getWelcomeTemplate(userName, userEmail) {
   `;
 }
 
-async function runWelcomeEngine() {
-  console.log("Checking for fresh waitlist signups inside 24-hour bracket...");
+async function runBirthdayEngine() {
+  const today = new Date();
+  const currentMonth = today.getMonth() + 1; // 1-12
+  const currentDate = today.getDate();       // 1-31
 
-  const now = new Date();
-  const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-  
-  // Note: Since we are using the modern modular layout, admin.firestore.Timestamp becomes:
-  const { Timestamp } = require("firebase-admin/firestore");
-  const cutoffTimestamp = Timestamp.fromDate(oneDayAgo);
+  console.log(`Starting scan for birthdays falling on Month: ${currentMonth}, Day: ${currentDate}...`);
 
   try {
-    const usersSnapshot = await db.collection("users")
-      .where("createdAt", ">=", cutoffTimestamp)
-      .get();
+    const usersSnapshot = await db.collection("users").get();
 
     if (usersSnapshot.empty) {
-      console.log("No new signups found today.");
+      console.log("The users collection is completely empty.");
       return;
     }
 
@@ -98,30 +88,67 @@ async function runWelcomeEngine() {
 
     for (const doc of usersSnapshot.docs) {
       const userData = doc.data();
+      const rawBirthday = userData.birthday;
       const userEmail = userData.email;
       const userName = userData.name || "Creator";
 
-      if (userEmail) {
-        const htmlContent = getWelcomeTemplate(userName, userEmail);
+      if (!rawBirthday || !userEmail) continue;
+
+      let birthMonth = null;
+      let birthDate = null;
+
+      // Format 1: If it's a Firestore Timestamp or JS Date object
+      if (typeof rawBirthday.toDate === "function") {
+        const d = rawBirthday.toDate();
+        birthMonth = d.getMonth() + 1;
+        birthDate = d.getDate();
+      } else if (rawBirthday instanceof Date) {
+        birthMonth = rawBirthday.getMonth() + 1;
+        birthDate = rawBirthday.getDate();
+      } 
+      // Format 2: If it's saved as a String (e.g., "2005-06-19" or "19-06-2005")
+      else if (typeof rawBirthday === "string") {
+        if (rawBirthday.includes("-")) {
+          const parts = rawBirthday.split("-");
+          // Detect YYYY-MM-DD
+          if (parts[0].length === 4) {
+            birthMonth = parseInt(parts[1], 10);
+            birthDate = parseInt(parts[2], 10);
+          } 
+          // Detect DD-MM-YYYY
+          else if (parts[2].length === 4) {
+            birthDate = parseInt(parts[0], 10);
+            birthMonth = parseInt(parts[1], 10);
+          }
+        }
+      }
+
+      // If the extracted month and date match today, fire the transmission!
+      if (birthMonth === currentMonth && birthDate === currentDate) {
+        const randomId = Math.floor(1000 + Math.random() * 9000);
+        const cleanName = userName.replace(/\s+/g, '').toUpperCase();
+        const customCoupon = `HBD-${cleanName}-${randomId}`;
+
+        const htmlContent = getBirthdayTemplate(userName, customCoupon);
 
         const mailOptions = {
           from: `"Dharex Customs" <${process.env.EMAIL_USER}>`,
           to: userEmail,
-          subject: `Secure Launch Uplink Established, ${userName} 🌐`,
+          subject: `Exclusive Birthday Lootcrate Drop: ${customCoupon} 🎁`,
           html: htmlContent
         };
 
         await transporter.sendMail(mailOptions);
-        console.log(`Welcome transmission sent securely to: ${userEmail}`);
+        console.log(`Birthday transmission successfully routed to: ${userEmail}`);
         batchCount++;
       }
     }
 
-    console.log(`Onboarding operations clear. Total welcomes sent: ${batchCount}`);
+    console.log(`Scan completed. Total birthday dispatches sent out: ${batchCount}`);
   } catch (error) {
-    console.error("Critical Runtime Fault:", error);
+    console.error("Critical Birthday Engine Fault:", error);
     process.exit(1);
   }
 }
 
-runWelcomeEngine();
+runBirthdayEngine();
