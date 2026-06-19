@@ -54,7 +54,7 @@ function getBirthdayTemplate(userName, couponCode) {
         <div class="coupon-box">
           <span style="color: #ffffff; font-size: 0.9rem; letter-spacing: 2px;">YOUR EXCLUSIVE ACCESS KEY:</span>
           <div class="coupon-code">${couponCode}</div>
-          <span style="color: #aaaaaa; font-size: 0.8rem;">Takes 10% OFF your entire next custom drop order.</span>
+          <span style="color: #aaaaaa; font-size: 0.8rem;">Enter this key on your dashboard to claim 500XP (worth ₹50) instantly!</span>
         </div>
 
         <p style="margin-top: 40px; color: #ffffff; font-weight: bold;">Keep breaking boundaries.<br><span style="color: #8f00ff;">— The Dharex Team</span></p>
